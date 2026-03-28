@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmetics Pro - Stock & Sales Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #d4a574;
+            --primary-dark: #b8935f;
+            --secondary: #f8f4f0;
+            --accent: #e8b4b8;
+            --text: #2c2c2c;
+            --text-light: #666;
+            --success: #7fb069;
+            --danger: #e07a5f;
+            --warning: #f2cc8f;
+            --glass: rgba(255, 255, 255, 0.85);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #faf7f5 0%, #f5ebe0 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #fff 0%, var(--secondary) 100%);
+            box-shadow: var(--shadow);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--primary);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-item i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem 2rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .header h2 {
+            font-size: 1.75rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+        }
+
+        .stat-card:nth-child(2)::before { background: var(--success); }
+        .stat-card:nth-child(3)::before { background: var(--accent); }
+        .stat-card:nth-child(4)::before { background: var(--warning); }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: rgba(212, 165, 116, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-card:nth-child(2) .stat-icon { background: rgba(127, 176, 105, 0.1); color: var(--success); }
+        .stat-card:nth-child(3) .stat-icon { background: rgba(232, 180, 184, 0.1); color: var(--accent); }
+        .stat-card:nth-child(4) .stat-icon { background: rgba(242, 204, 143, 0.1); color: var(--warning); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Tables */
+        .section {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: rgba(212, 165, 116, 0.05);
+        }
+
+        .product-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .product-category {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: rgba(127, 176, 105, 0.2); color: var(--success); }
+        .badge-warning { background: rgba(242, 204, 143, 0.2); color: var(--warning); }
+        .badge-danger { background: rgba(224, 122, 95, 0.2); color: var(--danger); }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background: var(--secondary);
+            color: var(--text);
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: var(--secondary);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--danger);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .container {
+                flex-direction: column;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .low-stock-alert {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--danger);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            z-index: 999;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .low-stock-alert.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-spa"></i>
+                <h1>Donama Costméticos</h1>
+            </div>
+            <nav>
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="showSection('products')">
+                    <i class="fas fa-box"></i>
+                    <span>Productos</span>
+                </div>
+                <div class="nav-item" onclick="showSection('sales')">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Vendas</span>
+                </div>
+                <div class="nav-item" onclick="showSection('inventory')">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Inventário</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="section-content">
+                <div class="header">
+                    <h2>Dashboard Overview</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openSaleModal()">
+                            <i class="fas fa-plus"></i> Nova Venda
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card animate-in">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="total-sales">AOA 0</div>
+                                <div class="stat-label">Total de  Vendas (Nesse Mes)</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> <span id="sales-growth">0%</span> vs Mes Passado
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in" style="animation-delay: 0.1s">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="total-orders">0</div>
+                                <div class="stat-label">Vendas Nesse Mes</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> <span id="orders-growth">0%</span> vs Mes Passado
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in" style="animation-delay: 0.2s">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="total-products">0</div>
+                                <div class="stat-label">Produtos Activos</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change" id="products-change">
+                            <i class="fas fa-minus"></i> Sem Mudança
+                        </div>
+                    </div>
+                    <div class="stat-card animate-in" style="animation-delay: 0.3s">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="low-stock-count">0</div>
+                                <div class="stat-label">produto com baixo stock</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change negative">
+                            Requer Atenção
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Analise de Vendas</h3>
+                            <div class="time-filter">
+                                <button class="filter-btn active" onclick="updateChart('weekly')">Semanal</button>
+                                <button class="filter-btn" onclick="updateChart('monthly')">Mensal</button>
+                                <button class="filter-btn" onclick="updateChart('yearly')">Anual</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Categorias mais Vendidas</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Sales Table -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3 class="chart-title">Vendas Recentes</h3>
+                        <button class="btn btn-primary" onclick="showSection('sales')">
+                            Todas Vendas
+                        </button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID Venda</th>
+                                <th>Produto</th>
+                                <th>Data</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-sales-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="products-section" class="section-content hidden">
+                <div class="header">
+                    <h2>Gestão de Produtos</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openProductModal()">
+                            <i class="fas fa-plus"></i> Addicionar Produtos
+                        </button>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="product-search" placeholder="Search products..." onkeyup="filterProducts()">
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Categoria</th>
+                                <th>Preco</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                                <th>Accao</th>
+                                <th>Nome do Produto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sales Section -->
+            <div id="sales-section" class="section-content hidden">
+                <div class="header">
+                    <h2>Historico de Vendas</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openSaleModal()">
+                            <i class="fas fa-plus"></i> Gravar a Venda
+                        </button>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="sale-search" placeholder="Search sales..." onkeyup="filterSales()">
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID Venda</th>
+                                <th>Produto</th>
+                                <th>Quantidade</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Inventory Section -->
+            <div id="inventory-section" class="section-content hidden">
+                <div class="header">
+                    <h2>Gestao de Inventario</h2>
+                </div>
+                <div class="section">
+                    <div class="section-header">
+                        <h3 class="chart-title">Stock Levels</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Quantidade Atual</th>
+                                <th>Min. Requerido</th>
+                                <th>Estado</th>
+                                <th>Ultima Restocagem</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal" id="product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Adicionar Novo Produto</h3>
+                <button class="close-btn" onclick="closeModal('product-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="product-form" onsubmit="saveProduct(event)">
+                <div class="form-group">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <select id="product-category" required>
+                            <option value="Skincare">Cuidados da pele</option>
+                            <option value="Makeup">Makeup</option>
+                            <option value="Haircare">Cuidado de Cabelo</option>
+                            <option value="Fragrance">Perfume</option>
+                            <option value="Body Care">Cuidado do Corpo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Preço (AOA)</label>
+                        <input type="number" id="product-price" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Stoque Inicial</label>
+                        <input type="number" id="product-stock" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Min. Nivel de Stoque</label>
+                        <input type="number" id="product-min-stock" value="10" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    Grava Produto
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sale Modal -->
+    <div class="modal" id="sale-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Gravar Nova Venda</h3>
+                <button class="close-btn" onclick="closeModal('sale-modal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="sale-form" onsubmit="saveSale(event)">
+                <div class="form-group">
+                    <label>Escolhe o Produto</label>
+                    <select id="sale-product" required onchange="updateSalePrice()">
+                        <option value="">Escolhe um produto...</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="sale-quantity" min="1" value="1" required onchange="updateSaleTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preç Unitário (AOA)</label>
+                        <input type="number" id="sale-price" step="0.01" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Valor Total (AOA)</label>
+                    <input type="number" id="sale-total" step="0.01" readonly>
+                </div>
+                <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 1rem;">
+                    Finalizar Venda
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Low Stock Alert -->
+    <div class="low-stock-alert" id="low-stock-alert">
+        <i class="fas fa-bell"></i>
+        <span id="alert-message">Alguns productos estao esgotando!</span>
+        <button onclick="hideAlert()" style="background: none; border: none; color: white; cursor: pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <script>
+        // Data Management
+        let products = JSON.parse(localStorage.getItem('cosmetics_products')) || [
+            { id: 1, name: 'Hydrating Face Cream', category: 'Skincare', price: 45.99, stock: 25, minStock: 10 },
+            { id: 2, name: 'Matte Lipstick Set', category: 'Makeup', price: 32.50, stock: 8, minStock: 15 },
+            { id: 3, name: 'Vitamin C Serum', category: 'Skincare', price: 58.00, stock: 12, minStock: 8 },
+            { id: 4, name: 'Rose Perfume', category: 'Fragrance', price: 85.00, stock: 20, minStock: 5 },
+            { id: 5, name: 'Hair Repair Mask', category: 'Haircare', price: 28.99, stock: 3, minStock: 10 }
+        ];
+
+        let sales = JSON.parse(localStorage.getItem('cosmetics_sales')) || [
+            { id: 'ORD-001', productId: 1, quantity: 2, date: new Date(Date.now() - 86400000 * 2), total: 91.98 },
+            { id: 'ORD-002', productId: 2, quantity: 1, date: new Date(Date.now() - 86400000 * 5), total: 32.50 },
+            { id: 'ORD-003', productId: 3, quantity: 3, date: new Date(Date.now() - 86400000 * 7), total: 174.00 }
+        ];
+
+        let salesChart, categoryChart;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            saveData();
+            renderDashboard();
+            renderProducts();
+            renderSales();
+            renderInventory();
+            checkLowStock();
+            initCharts();
+        });
+
+        function saveData() {
+            localStorage.setItem('cosmetics_products', JSON.stringify(products));
+            localStorage.setItem('cosmetics_sales', JSON.stringify(sales));
+        }
+
+        // Navigation
+        function showSection(section) {
+            document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
+            document.getElementById(section + '-section').classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+
+            if (section === 'dashboard') {
+                updateDashboard();
+            }
+        }
+
+        // Dashboard Functions
+        function renderDashboard() {
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            const now = new Date();
+            const thisMonth = sales.filter(s => {
+                const d = new Date(s.date);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            });
+            
+            const lastMonth = sales.filter(s => {
+                const d = new Date(s.date);
+                return d.getMonth() === (now.getMonth() - 1) && d.getFullYear() === now.getFullYear();
+            });
+
+            const thisMonthTotal = thisMonth.reduce((sum, s) => sum + s.total, 0);
+            const lastMonthTotal = lastMonth.reduce((sum, s) => sum + s.total, 0);
+            
+            document.getElementById('total-sales').textContent = '$' + thisMonthTotal.toFixed(2);
+            document.getElementById('total-orders').textContent = thisMonth.length;
+            document.getElementById('total-products').textContent = products.length;
+            
+            const lowStock = products.filter(p => p.stock <= p.minStock).length;
+            document.getElementById('low-stock-count').textContent = lowStock;
+
+            const growth = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal * 100).toFixed(1) : 0;
+            document.getElementById('sales-growth').textContent = Math.abs(growth) + '%';
+            
+            // Recent sales
+            const recentSales = [...sales].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            const tbody = document.getElementById('recent-sales-body');
+            tbody.innerHTML = recentSales.map(sale => {
+                const product = products.find(p => p.id === sale.productId);
+                return `
+                    <tr>
+                        <td>${sale.id}</td>
+                        <td>${product ? product.name : 'Unknown'}</td>
+                        <td>${new Date(sale.date).toLocaleDateString()}</td>
+                        <td>$${sale.total.toFixed(2)}</td>
+                        <td><span class="badge badge-success">Completed</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Charts
+        function initCharts() {
+            const ctx1 = document.getElementById('salesChart').getContext('2d');
+            const ctx2 = document.getElementById('categoryChart').getContext('2d');
+
+            salesChart = new Chart(ctx1, {
+                type: 'line',
+                data: getWeeklyData(),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            const categoryData = getCategoryData();
+            categoryChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryData.labels,
+                    datasets: [{
+                        data: categoryData.values,
+                        backgroundColor: ['#d4a574', '#7fb069', '#e8b4b8', '#f2cc8f', '#81b29a'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true }
+                        }
+                    }
+                }
+            });
+        }
+
+        function getWeeklyData() {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const data = new Array(7).fill(0);
+            
+            const now = new Date();
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(now);
+                d.setDate(d.getDate() - (6 - i));
+                const daySales = sales.filter(s => {
+                    const sd = new Date(s.date);
+                    return sd.toDateString() === d.toDateString();
+                });
+                data[i] = daySales.reduce((sum, s) => sum + s.total, 0);
+            }
+            
+            return {
+                labels: days,
+                datasets: [{
+                    label: 'Sales ($)',
+                    data: data,
+                    borderColor: '#d4a574',
+                    backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#d4a574'
+                }]
+            };
+        }
+
+        function getMonthlyData() {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const data = new Array(12).fill(0);
+            
+            sales.forEach(sale => {
+                const d = new Date(sale.date);
+                data[d.getMonth()] += sale.total;
+            });
+            
+            return {
+                labels: months,
+                datasets: [{
+                    label: 'Sales ($)',
+                    data: data,
+                    borderColor: '#d4a574',
+                    backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+        }
+
+        function getYearlyData() {
+            const years = {};
+            sales.forEach(sale => {
+                const y = new Date(sale.date).getFullYear();
+                years[y] = (years[y] || 0) + sale.total;
+            });
+            
+            return {
+                labels: Object.keys(years),
+                datasets: [{
+                    label: 'Sales ($)',
+                    data: Object.values(years),
+                    borderColor: '#d4a574',
+                    backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+        }
+
+        function getCategoryData() {
+            const cats = {};
+            sales.forEach(sale => {
+                const product = products.find(p => p.id === sale.productId);
+                if (product) {
+                    cats[product.category] = (cats[product.category] || 0) + sale.total;
+                }
+            });
+            return { labels: Object.keys(cats), values: Object.values(cats) };
+        }
+
+        function updateChart(period) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            let newData;
+            if (period === 'weekly') newData = getWeeklyData();
+            else if (period === 'monthly') newData = getMonthlyData();
+            else newData = getYearlyData();
+            
+            salesChart.data = newData;
+            salesChart.update();
+        }
+
+        // Product Management
+        function renderProducts() {
+            const tbody = document.getElementById('products-table-body');
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td>
+                        <div class="product-info">
+                            <div class="product-img">
+                                <i class="fas fa-pump-soap"></i>
+                            </div>
+                            <div>
+                                <div class="product-name">${p.name}</div>
+                                <div class="product-category">${p.category}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${p.category}</td>
+                    <td>$${p.price.toFixed(2)}</td>
+                    <td>${p.stock}</td>
+                    <td>
+                        <span class="badge ${p.stock > p.minStock ? 'badge-success' : p.stock > 0 ? 'badge-warning' : 'badge-danger'}">
+                            ${p.stock > p.minStock ? 'In Stock' : p.stock > 0 ? 'Low Stock' : 'Out of Stock'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="editProduct(${p.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn" onclick="deleteProduct(${p.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updateProductSelect();
+        }
+
+        function updateProductSelect() {
+            const select = document.getElementById('sale-product');
+            select.innerHTML = '<option value="">Choose a product...</option>' + 
+                products.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name} (Stock: ${p.stock})</option>`).join('');
+        }
+
+        function openProductModal() {
+            document.getElementById('product-form').reset();
+            document.getElementById('product-modal').classList.add('active');
+        }
+
+        function saveProduct(e) {
+            e.preventDefault();
+            const product = {
+                id: Date.now(),
+                name: document.getElementById('product-name').value,
+                category: document.getElementById('product-category').value,
+                price: parseFloat(document.getElementById('product-price').value),
+                stock: parseInt(document.getElementById('product-stock').value),
+                minStock: parseInt(document.getElementById('product-min-stock').value)
+            };
+            
+            products.push(product);
+            saveData();
+            renderProducts();
+            closeModal('product-modal');
+            updateDashboard();
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Delete this product?')) {
+                products = products.filter(p => p.id !== id);
+                saveData();
+                renderProducts();
+                updateDashboard();
+            }
+        }
+
+        function filterProducts() {
+            const term = document.getElementById('product-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#products-table-body tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
+
+        // Sales Management
+        function renderSales() {
+            const tbody = document.getElementById('sales-table-body');
+            tbody.innerHTML = sales.sort((a, b) => new Date(b.date) - new Date(a.date)).map(s => {
+                const product = products.find(p => p.id === s.productId);
+                return `
+                    <tr>
+                        <td>${s.id}</td>
+                        <td>${product ? product.name : 'Unknown'}</td>
+                        <td>${s.quantity}</td>
+                        <td>${new Date(s.date).toLocaleDateString()}</td>
+                        <td>$${s.total.toFixed(2)}</td>
+                        <td>
+                            <button class="action-btn" onclick="deleteSale('${s.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openSaleModal() {
+            document.getElementById('sale-form').reset();
+            document.getElementById('sale-modal').classList.add('active');
+        }
+
+        function updateSalePrice() {
+            const select = document.getElementById('sale-product');
+            const price = select.options[select.selectedIndex].getAttribute('data-price');
+            document.getElementById('sale-price').value = price || 0;
+            updateSaleTotal();
+        }
+
+        function updateSaleTotal() {
+            const price = parseFloat(document.getElementById('sale-price').value) || 0;
+            const qty = parseInt(document.getElementById('sale-quantity').value) || 0;
+            document.getElementById('sale-total').value = (price * qty).toFixed(2);
+        }
+
+        function saveSale(e) {
+            e.preventDefault();
+            const productId = parseInt(document.getElementById('sale-product').value);
+            const quantity = parseInt(document.getElementById('sale-quantity').value);
+            const product = products.find(p => p.id === productId);
+            
+            if (!product || product.stock < quantity) {
+                alert('stock insuficiente!');
+                return;
+            }
+            
+            const sale = {
+                id: 'ORD-' + String(sales.length + 1).padStart(3, '0'),
+                productId: productId,
+                quantity: quantity,
+                date: new Date(),
+                total: parseFloat(document.getElementById('sale-total').value)
+            };
+            
+            product.stock -= quantity;
+            sales.push(sale);
+            
+            saveData();
+            renderSales();
+            renderProducts();
+            renderInventory();
+            closeModal('sale-modal');
+            updateDashboard();
+            checkLowStock();
+            
+            // Update charts
+            salesChart.data = getWeeklyData();
+            salesChart.update();
+            const catData = getCategoryData();
+            categoryChart.data.labels = catData.labels;
+            categoryChart.data.datasets[0].data = catData.values;
+            categoryChart.update();
+        }
+
+        function deleteSale(id) {
+            if (confirm('Delete this sale record?')) {
+                const sale = sales.find(s => s.id === id);
+                if (sale) {
+                    const product = products.find(p => p.id === sale.productId);
+                    if (product) product.stock += sale.quantity;
+                }
+                sales = sales.filter(s => s.id !== id);
+                saveData();
+                renderSales();
+                renderProducts();
+                updateDashboard();
+            }
+        }
+
+        function filterSales() {
+            const term = document.getElementById('sale-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#sales-table-body tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
+
+        // Inventory
+        function renderInventory() {
+            const tbody = document.getElementById('inventory-table-body');
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td>
+                        <div class="product-info">
+                            <div class="product-img">
+                                <i class="fas fa-pump-soap"></i>
+                            </div>
+                            <div class="product-name">${p.name}</div>
+                        </div>
+                    </td>
+                    <td><strong>${p.stock}</strong></td>
+                    <td>${p.minStock}</td>
+                    <td>
+                        <span class="badge ${p.stock > p.minStock ? 'badge-success' : p.stock > 0 ? 'badge-warning' : 'badge-danger'}">
+                            ${p.stock > p.minStock ? 'Optimal' : p.stock > 0 ? 'Reorder Needed' : 'Critical'}
+                        </span>
+                    </td>
+                    <td>${new Date().toLocaleDateString()}</td>
+                    <td>
+                        <button class="action-btn" onclick="restockProduct(${p.id})" title="Restock">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function restockProduct(id) {
+            const amount = parseInt(prompt('Enter quantity to add:'));
+            if (amount && amount > 0) {
+                const product = products.find(p => p.id === id);
+                product.stock += amount;
+                saveData();
+                renderInventory();
+                renderProducts();
+                checkLowStock();
+            }
+        }
+
+        // Utilities
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function checkLowStock() {
+            const lowStock = products.filter(p => p.stock <= p.minStock);
+            if (lowStock.length > 0) {
+                document.getElementById('alert-message').textContent = 
+                    `${lowStock.length} product(s) running low on stock!`;
+                document.getElementById('low-stock-alert').classList.add('show');
+            }
+        }
+
+        function hideAlert() {
+            document.getElementById('low-stock-alert').classList.remove('show');
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
